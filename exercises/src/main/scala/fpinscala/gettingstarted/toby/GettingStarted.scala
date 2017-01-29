@@ -37,6 +37,11 @@ object MyModule {
 
   // Exercise 1: Write a function to compute the nth fibonacci number
 
+  def fib2(n: Int): Int =
+    if (n == 0) 0
+    else if (n == 1) 1
+    else fib2(n-2) + fib2(n-1)
+
   def fib(n: Int): Int = {
     def iter(c: Int, pre: Int, cur: Int): Int =
       if (c > n) cur else iter(c+1, cur, pre+cur)
@@ -159,12 +164,13 @@ object PolymorphicFunctions {
 //    println(isSorted(Array(1,2,3,4,5,6,5), (a:Int, b:Int) => a < b))
 
 /* Exercises 3  */
-//    val curried = curry((a: Int, b: Int) => a + b)
-//    println(curried(1)(2))  // 3
-//    val part = curried(5)
-//    println(part(4))    // 9
-//    val curried2 = ((a: Int, b: Int) => a + b).curried
-//    println(curried2(2)(3)) // 5
+    var f: (Int,Int) => Int = (a: Int, b: Int) => a + b
+    val curried: Int => (Int => Int) = curry(f)
+    println(curried(1)(2))  // 3
+    val part: Int => Int = curried(5)   // (b: Int) => 5 + b
+    println(part(4))    // 9
+    val curried2 = ((a: Int, b: Int) => a + b).curried
+    println(curried2(2)(3)) // 5
 
 
 /* Exercises 4 */
@@ -194,7 +200,6 @@ object PolymorphicFunctions {
   // Exercise 4: Implement `uncurry`
   def uncurry[A,B,C](f: A => B => C): (A, B) => C =
     (a: A, b: B) => f(a)(b)
-
 
   /*
   NB: There is a method on the `Function` object in the standard library,

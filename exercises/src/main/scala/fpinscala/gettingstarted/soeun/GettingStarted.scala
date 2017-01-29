@@ -1,5 +1,7 @@
 package fpinscala.gettingstarted.soeun
 
+import scala.annotation.tailrec
+
 // A comment!
 /* Another comment */
 /** A documentation comment */
@@ -41,6 +43,14 @@ object MyModule {
       if(n == 0) n1
       else go(n-1, n1, n1 + n2)
     go(n, 0, 1)
+  }
+
+  def sum(n: Int): Int = {
+    var sum = 0;
+    (1 to n).foreach {
+      i => sum += i;
+    }
+    sum
   }
 
   // This definition and `formatAbs` are very similar..
