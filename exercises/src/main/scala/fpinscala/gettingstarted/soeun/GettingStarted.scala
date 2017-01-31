@@ -1,4 +1,6 @@
-package fpinscala.gettingstarted.toby
+package fpinscala.gettingstarted.soeun
+
+import scala.annotation.tailrec
 
 // A comment!
 /* Another comment */
@@ -14,8 +16,7 @@ object MyModule {
   }
 
   def main(args: Array[String]): Unit =
-//    println(formatAbs(-42))
-    (0 to 10).foreach(i=>println(fib(i)))
+    println(formatAbs(-42))
 
   // A definition of factorial, using a local, tail recursive function
   def factorial(n: Int): Int = {
@@ -35,17 +36,21 @@ object MyModule {
     acc
   }
 
-  // Exercise 1: Write a function to compute the nth fibonacci number
-
-  def fib2(n: Int): Int =
-    if (n == 0) 0
-    else if (n == 1) 1
-    else fib2(n-2) + fib2(n-1)
+  // Exercise 1: Write a function to compute the nth fibonacci number ( 0,1 이 시작 )
 
   def fib(n: Int): Int = {
-    def iter(c: Int, pre: Int, cur: Int): Int =
-      if (c > n) cur else iter(c+1, cur, pre+cur)
-    if (n <= 1) n else iter(2, 0, 1)
+    def go(n:Int, n1: Int, n2: Int): Int =
+      if(n == 0) n1
+      else go(n-1, n1, n1 + n2)
+    go(n, 0, 1)
+  }
+
+  def sum(n: Int): Int = {
+    var sum = 0;
+    (1 to n).foreach {
+      i => sum += i;
+    }
+    sum
   }
 
   // This definition and `formatAbs` are very similar..
@@ -117,7 +122,7 @@ object MonomorphicBinarySearch {
       else {
         val mid2 = (low + high) / 2
         val d = ds(mid2) // We index into an array using the same
-        // syntax as function application
+                         // syntax as function application
         if (d == key) mid2
         else if (d > key) go(low, mid2, mid2-1)
         else go(mid2 + 1, mid2, high)
@@ -150,36 +155,14 @@ object PolymorphicFunctions {
 
   // Exercise 2: Implement a polymorphic function to check whether
   // an `Array[A]` is sorted
+//  (1,2,3) (11,1,3)
   def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
-    def check(i: Int): Boolean =
-      if (i >= as.length) true
-      else if (gt(as(i-1), as(i))) check(i+1)
-      else false
-
-    check(1)
-  }
-
-  def main(args: Array[String]): Unit = {
-//    println(isSorted(Array(1,2,3,4,5,6,7), (a:Int, b:Int) => a < b))
-//    println(isSorted(Array(1,2,3,4,5,6,5), (a:Int, b:Int) => a < b))
-
-/* Exercises 3  */
-    var f: (Int,Int) => Int = (a: Int, b: Int) => a + b
-    val curried: Int => (Int => Int) = curry(f)
-    println(curried(1)(2))  // 3
-    val part: Int => Int = curried(5)   // (b: Int) => 5 + b
-    println(part(4))    // 9
-    val curried2 = ((a: Int, b: Int) => a + b).curried
-    println(curried2(2)(3)) // 5
-
-
-/* Exercises 4 */
-//    val uncurried = uncurry((a: Int) => (b: Int) => a + b)
-//    println(uncurried(3,4))   // 7
-
-/* Exercises 5 */
-//    val composed = compose((a: Int) => a + 1, (b: Int) => b * 3)
-//    println(composed(2))    // 7
+    def loop(n: Int): Boolean = {
+      if(n >= as.length-1) true
+      else if (gt(as(n), as(n+1))) false
+      else loop(n+1)
+    }
+    loop(0)
   }
 
   // Polymorphic functions are often so constrained by their type
@@ -193,17 +176,18 @@ object PolymorphicFunctions {
   // Note that `=>` associates to the right, so we could
   // write the return type as `A => B => C`
   def curry[A,B,C](f: (A, B) => C): A => (B => C) =
-    (a: A) => (b: B) => f(a,b)
+    (a : A) => (b : B) => f(a, b)
 
   // NB: The `Function2` trait has a `curried` method already
 
   // Exercise 4: Implement `uncurry`
+  //A => B => C === A => (B => C)
   def uncurry[A,B,C](f: A => B => C): (A, B) => C =
-    (a: A, b: B) => f(a)(b)
-
+    ???
   /*
   NB: There is a method on the `Function` object in the standard library,
   `Function.uncurried` that you can use for uncurrying.
+
   Note that we can go back and forth between the two forms. We can curry
   and uncurry and the two forms are in some sense "the same". In FP jargon,
   we say that they are _isomorphic_ ("iso" = same; "morphe" = shape, form),
@@ -213,5 +197,5 @@ object PolymorphicFunctions {
   // Exercise 5: Implement `compose`
 
   def compose[A,B,C](f: B => C, g: A => B): A => C =
-    (a: A) => f(g(a))
+    (a : A) => f(g(a))
 }

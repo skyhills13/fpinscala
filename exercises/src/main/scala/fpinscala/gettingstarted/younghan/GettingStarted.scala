@@ -1,4 +1,4 @@
-package fpinscala.gettingstarted.toby
+package fpinscala.gettingstarted.younghan
 
 // A comment!
 /* Another comment */
@@ -14,15 +14,14 @@ object MyModule {
   }
 
   def main(args: Array[String]): Unit =
-//    println(formatAbs(-42))
-    (0 to 10).foreach(i=>println(fib(i)))
+    println(formatAbs(-42))
 
   // A definition of factorial, using a local, tail recursive function
   def factorial(n: Int): Int = {
     @annotation.tailrec
     def go(n: Int, acc: Int): Int =
       if (n <= 0) acc
-      else go(n-1, n*acc)
+      else go(n - 1, n * acc)
 
     go(n, 1)
   }
@@ -31,21 +30,26 @@ object MyModule {
   def factorial2(n: Int): Int = {
     var acc = 1
     var i = n
-    while (i > 0) { acc *= i; i -= 1 }
+    while (i > 0) {
+      acc *= i;
+      i -= 1
+    }
     acc
   }
 
   // Exercise 1: Write a function to compute the nth fibonacci number
 
-  def fib2(n: Int): Int =
-    if (n == 0) 0
-    else if (n == 1) 1
-    else fib2(n-2) + fib2(n-1)
-
   def fib(n: Int): Int = {
-    def iter(c: Int, pre: Int, cur: Int): Int =
-      if (c > n) cur else iter(c+1, cur, pre+cur)
-    if (n <= 1) n else iter(2, 0, 1)
+
+    def go(i: Int, before1: Int, before2: Int): Int = {
+      if (n <= 1) n
+      else if (i == n)
+        before1 + before2
+      else
+        go(i + 1, before2, before1 + before2)
+    }
+
+    go(2, 0, 1)
   }
 
   // This definition and `formatAbs` are very similar..
@@ -89,6 +93,7 @@ object TestFib {
 // convenient to have syntax for constructing a function
 // *without* having to give it a name
 object AnonymousFunctions {
+
   import MyModule._
 
   // Some examples of anonymous functions:
@@ -99,7 +104,10 @@ object AnonymousFunctions {
     println(formatResult("increment2", 7, (x) => x + 1))
     println(formatResult("increment3", 7, x => x + 1))
     println(formatResult("increment4", 7, _ + 1))
-    println(formatResult("increment5", 7, x => { val r = x + 1; r }))
+    println(formatResult("increment5", 7, x => {
+      val r = x + 1;
+      r
+    }))
   }
 }
 
@@ -119,10 +127,11 @@ object MonomorphicBinarySearch {
         val d = ds(mid2) // We index into an array using the same
         // syntax as function application
         if (d == key) mid2
-        else if (d > key) go(low, mid2, mid2-1)
+        else if (d > key) go(low, mid2, mid2 - 1)
         else go(mid2 + 1, mid2, high)
       }
     }
+
     go(0, 0, ds.length - 1)
   }
 
@@ -132,7 +141,7 @@ object PolymorphicFunctions {
 
   // Here's a polymorphic version of `binarySearch`, parameterized on
   // a function for testing whether an `A` is greater than another `A`.
-  def binarySearch[A](as: Array[A], key: A, gt: (A,A) => Boolean): Int = {
+  def binarySearch[A](as: Array[A], key: A, gt: (A, A) => Boolean): Int = {
     @annotation.tailrec
     def go(low: Int, mid: Int, high: Int): Int = {
       if (low > high) -mid - 1
@@ -140,70 +149,52 @@ object PolymorphicFunctions {
         val mid2 = (low + high) / 2
         val a = as(mid2)
         val greater = gt(a, key)
-        if (!greater && !gt(key,a)) mid2
-        else if (greater) go(low, mid2, mid2-1)
+        if (!greater && !gt(key, a)) mid2
+        else if (greater) go(low, mid2, mid2 - 1)
         else go(mid2 + 1, mid2, high)
       }
     }
+
     go(0, 0, as.length - 1)
   }
 
   // Exercise 2: Implement a polymorphic function to check whether
   // an `Array[A]` is sorted
-  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
-    def check(i: Int): Boolean =
-      if (i >= as.length) true
-      else if (gt(as(i-1), as(i))) check(i+1)
-      else false
+  def isSorted[A](as: Array[A], gt: (A, A) => Boolean): Boolean = {
+    @annotation.tailrec
+    def loop(index: Int): Boolean = {
 
-    check(1)
-  }
+      if (index == as.length - 1) true //끝까지 검증을 완료함
+      else if (!gt(as(index), as(index + 1))) false //검증에 실패함
+      else loop(index + 1)
+    }
 
-  def main(args: Array[String]): Unit = {
-//    println(isSorted(Array(1,2,3,4,5,6,7), (a:Int, b:Int) => a < b))
-//    println(isSorted(Array(1,2,3,4,5,6,5), (a:Int, b:Int) => a < b))
-
-/* Exercises 3  */
-    var f: (Int,Int) => Int = (a: Int, b: Int) => a + b
-    val curried: Int => (Int => Int) = curry(f)
-    println(curried(1)(2))  // 3
-    val part: Int => Int = curried(5)   // (b: Int) => 5 + b
-    println(part(4))    // 9
-    val curried2 = ((a: Int, b: Int) => a + b).curried
-    println(curried2(2)(3)) // 5
-
-
-/* Exercises 4 */
-//    val uncurried = uncurry((a: Int) => (b: Int) => a + b)
-//    println(uncurried(3,4))   // 7
-
-/* Exercises 5 */
-//    val composed = compose((a: Int) => a + 1, (b: Int) => b * 3)
-//    println(composed(2))    // 7
+    loop(0)
   }
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
 
-  def partial1[A,B,C](a: A, f: (A,B) => C): B => C =
+  def partial1[A, B, C](a: A, f: (A, B) => C): B => C =
     (b: B) => f(a, b)
 
   // Exercise 3: Implement `curry`.
 
   // Note that `=>` associates to the right, so we could
   // write the return type as `A => B => C`
-  def curry[A,B,C](f: (A, B) => C): A => (B => C) =
-    (a: A) => (b: B) => f(a,b)
+  def curry[A, B, C](f: (A, B) => C): A => (B => C) =
+  (a: A) => (b => f(a, b))
 
   // NB: The `Function2` trait has a `curried` method already
 
   // Exercise 4: Implement `uncurry`
-  def uncurry[A,B,C](f: A => B => C): (A, B) => C =
-    (a: A, b: B) => f(a)(b)
+  def uncurry[A, B, C](f: A => B => C): (A, B) => C =
+    (a: A, b: B) => f(a)(b);
 
   /*
   NB: There is a method on the `Function` object in the standard library,
   `Function.uncurried` that you can use for uncurrying.
+
   Note that we can go back and forth between the two forms. We can curry
   and uncurry and the two forms are in some sense "the same". In FP jargon,
   we say that they are _isomorphic_ ("iso" = same; "morphe" = shape, form),
@@ -212,6 +203,6 @@ object PolymorphicFunctions {
 
   // Exercise 5: Implement `compose`
 
-  def compose[A,B,C](f: B => C, g: A => B): A => C =
+  def compose[A, B, C](f: B => C, g: A => B): A => C =
     (a: A) => f(g(a))
 }
