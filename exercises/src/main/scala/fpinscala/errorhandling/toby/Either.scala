@@ -91,6 +91,5 @@ object Either {
     else Right(new Age(age))
   def mkPerson(name: String, age: Int): Either[String, Person] =
     mkName(name).map2(mkAge(age))(Person(_, _))
-
-
 }
+

@@ -125,3 +125,24 @@ object PersonMain {
     println(mkPerson("hi", -2))
   }
 }
+
+object Test2 {
+  def main(args: Array[String]): Unit = {
+    import EitherMain._
+    /** 4.6 **/
+    println("Ex4.6: map Right(2) = " + Right(1).map(_+1))
+    println("Ex4.6: map Left(1) = " + Left(1).map(_=>Left(2)))
+    println("Ex4.6: flatMap Right(2) = " + Right(1).flatMap(a=>Right(a+1)))
+    println("Ex4.6: flatMap Left(1) = " + Left(1).flatMap(Right(_)))
+    println("Ex4.6: orElse Right(1) = " + Right(1).orElse(Right(3)))
+    println("Ex4.6: orElse Right(3) = " + Left(1).orElse(Right(3)))
+    println("Ex4.6: map2 Right(3) = " + Right(1).map2(Right(2))(_+_))
+    println("Ex4.6: map2 Left(1) = " + Left(1).map2(Right(2))((_,a)=>a))
+    println("Ex4.6: map2 Left(2) = " + Right(1).map2(Left(2))((_,a)=>a))
+    /** 4.7 **/
+    println("Ex4.7: traverse Right(List(1, 2, 3)) = " + traverse[Int,Int,Int](List(1,2,3))(Right(_)))
+    println("Ex4.7: traverse Left(2) = " + traverse[Int,Int,Int](List(1,2,3))(x=>if (x==2) Left(x) else Right(x)))
+    println("Ex4.7: sequence Right(List(1, 2, 3)) = " + sequence(List(Right(1),Right(2),Right(3))))
+    println("Ex4.7: sequence Left(2) = " + sequence(List(Right(1),Left(2),Right(3))))
+  }
+}

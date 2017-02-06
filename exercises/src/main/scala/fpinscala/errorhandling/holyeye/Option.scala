@@ -156,3 +156,37 @@ object Option_4_4 {
 
   }
 }
+
+object Test {
+  def main (args: Array[String] ): Unit = {
+    import ParseInsuranceRateQuoteMain._
+    import Option_4_2._
+    import Option_4_4._
+
+    /** 4.1 **/
+    println("Ex4.1: map Some(2) = " + Some(1).map(_+1))
+    println("Ex4.1: map None = " + (None:Option[Int]).map(_+1))
+    println("Ex4.1: getOrElse 1 = " + Some(1).getOrElse(2))
+    println("Ex4.1: getOrElse 2 = " + None.getOrElse(2))
+    println("Ex4.1: flatMap Some(1) = " + Some(1).flatMap(Some(_)))
+    println("Ex4.1: flatMap None = " + None.flatMap(Some(_)))
+    println("Ex4.1: filter Some(1) = " + Some(1).filter(_>0))
+    println("Ex4.1: filter None = " + Some(1).filter(_<0))
+    println("Ex4.1: filter None = " + None.filter((a:Int) => a<0))
+    /** 4.2 **/
+    println("Ex4.2: variance Some(1.25) = " + variance(Seq(1,2,3,4)))
+    println("Ex4.2: variance None = " + variance(Seq()))
+    /** 4.3 **/
+    println("Ex4.3: map2 Some(3) = " + map2(Some(1), Some(2))(_+_))
+    println("Ex4.3: map2 None = " + map2[Int,Int,Int](None, Some(2))(_+_))
+    println("Ex4.3: map2 None = " + map2[Int,Int,Int](Some(1), None)(_+_))
+    println("Ex4.3: map2 None = " + map2[Int,Int,Int](None, None)(_+_))
+    /** 4.4 **/
+    println("Ex4.4: sequence Some(List(1, 2, 3)) = " + sequence(List(Some(1),Some(2),Some(3))))
+    println("Ex4.4: sequence None = " + sequence(List(None,Some(2),Some(3))))
+    println("Ex4.4: sequence None = " + sequence(List(Some(1),Some(2),None)))
+    println("Ex4.4: traverse Some(List(1, 2, 3)) = " + traverse(List(1,2,3))(a => Some(a)))
+    println("Ex4.4: traverse None = " + traverse(List(1,2,3))(a => if (a<3) Some(a) else None))
+
+  }
+}
