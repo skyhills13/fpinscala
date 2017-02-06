@@ -48,6 +48,11 @@ object Test2 {
     println("Ex4.6: map2 Right(3) = " + Right(1).map2(Right(2))(_+_))
     println("Ex4.6: map2 Left(1) = " + Left(1).map2(Right(2))((_,a)=>a))
     println("Ex4.6: map2 Left(2) = " + Right(1).map2(Left(2))((_,a)=>a))
+    /** 4.7 **/
+    println("Ex4.7: traverse Right(List(1, 2, 3)) = " + traverse[Int,Int,Int](List(1,2,3))(Right(_)))
+    println("Ex4.7: traverse Left(2) = " + traverse[Int,Int,Int](List(1,2,3))(x=>if (x==2) Left(x) else Right(x)))
+    println("Ex4.7: sequence Right(List(1, 2, 3)) = " + sequence(List(Right(1),Right(2),Right(3))))
+    println("Ex4.7: sequence Left(2) = " + sequence(List(Right(1),Left(2),Right(3))))
   }
 }
 
@@ -87,5 +92,5 @@ object Either {
   def mkPerson(name: String, age: Int): Either[String, Person] =
     mkName(name).map2(mkAge(age))(Person(_, _))
 
-  
+
 }
