@@ -89,11 +89,12 @@ object ParseInsuranceRateQuoteMain {
       )
     )
 
+
 /*
-    for {
-      aa <- a
-      bb <- b
-    } yield f(aa, bb)
+    val x = for {
+      aa <- 1
+      bb <- 2
+    } yield f(1, 2)
 */
   }
 

@@ -86,6 +86,9 @@ object Option {
   /*
   Here's an explicit recursive version:
   */
+
+
+
   def sequence[A](a: List[Option[A]]): Option[List[A]] =
     a match {
       case Nil => Some(Nil)

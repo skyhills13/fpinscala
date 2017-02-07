@@ -14,23 +14,31 @@ sealed trait Option[+A] {
     case Some(a) => a
   }
 
+  // Some(1) f: a => Some(a + 1)  Some(Some(2)) -> Some(2), None
+
   //패턴 매칭을 이용하지 않고 하는 방법을 모르겠음
   def flatMap[B](f: A => Option[B]): Option[B] = this match {
     case None => None
     case Some(a) => f(a)
   }
 
-  def orElse[B>:A](ob: => Option[B]): Option[B] = this match {
-    case None => ob
-    case _ => this
-  }
+  // Some(1) => Some(Some(1)) => getOrElse() => Some(1)
+  // None => None => getOrElse() => ob
 
-  def filter1(f: A => Boolean): Option[A] = this match {
-    case None => None
-    case Some(a) =>
-      if (f(a)) this
-      else None
-  }
+  def orElse[B>:A](ob: => Option[B]): Option[B] =
+    map(Some(_)).getOrElse(ob)
+
+  // None => None
+  // Some(1) => Some(1)
+  // Some(2) => None
+  def filter1(f: A => Boolean): Option[A] =
+//    this match {
+//      case None => None
+//      case Some(a) =>
+//        if (f(a)) this
+//        else None
+//    }
+    flatMap(a => if (f(a)) Some(a) else None)
 
   def filter(f: A => Boolean): Option[A] = {
     flatMap(a =>
@@ -95,6 +103,10 @@ object Option {
         )
       )
   }
+
+  //  List(Some(1),Some(2),Some(3)) => 1 :: sequence(Some(2),Some(3)) => Some(Nil)
+  //  Some(Nil) -> Some(2 :: Some(3 :: Nil))
+  //
 
 //  /*4.4*/
 //  def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
