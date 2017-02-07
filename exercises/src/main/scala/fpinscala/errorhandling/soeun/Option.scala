@@ -38,12 +38,6 @@ sealed trait Option[+A] {
       else None
     )
   }
-
-  def main(args: Array[String]): Unit = {
-    val x = 1
-    println(Some(x).map(x => x + 1))
-    println(Some(x).map(a => a + 1))
-  }
 }
 
 case class Some[+A](get: A) extends Option[A]
@@ -74,10 +68,10 @@ object Option {
 
   /*4.2*/
   //flatmap이용 math.pow(x-m, 2)/n
-//  def variance(xs: Seq[Double]): Option[Double] = {
-//    if(xs.isEmpty) None
-//    else ??? mean(xs.map(x => math.pow(x-m,2))))
-//  }
+  def variance(xs: Seq[Double]): Option[Double] = {
+    if(xs.isEmpty) None
+    else mean(xs).flatMap(m => mean(xs.map(x => math.pow(x-m,2))))
+  }
   /*4.3*/
   //74p참고
   def map2[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = {
@@ -102,27 +96,66 @@ object Option {
       )
   }
 
-  /*4.4*/
-  //  def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
-  //    case Nil => Some(Nil)
-  //    case h::t =>
-  //  }
-  /*4.5*/
-  //  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = a match {
-  //    case Nil => Some(Nil)
-  //    case h::t =>
-  //  }
-
-  //traverse이용
-  //  def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
-  //    case Nil => Some(Nil)
-  //    case h::t =>
-  //  }
+//  /*4.4*/
+//  def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
+//    case Nil => Some(Nil)
+//    case h::t => h.flatMap(hh=>)
+//  }
+//  /*4.5*/
+//  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = a match {
+//    case Nil => Some(Nil)
+//    case h::t =>
+//  }
+//
+//  //traverse이용
+//  def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
+//    case Nil => Some(Nil)
+//    case h::t =>
+//  }
 }
 
-object Test {
+object Test2 {
   def main(args: Array[String]): Unit = {
+/*  map2가 뭐하는 함수인가에 대한 설명
+    Option안붙은 함수 f를 옵션 붙은 파라미터에
+    별다른 조작없이 적용할 수 있게 해주는게 map2
+*/
     val f = (a: Int, b: Int) => a + b
     println(Option.map2(Some(1), Some(2))(f));
+
+    val x = 1
+    println("===map===")
+    println(Some(x).map(x => x + 1))
+    println(Some(x).map(a => a + 1)) //a가 되든 x가 되든 상관이 없다. java .map처럼
+
+    println("===getOrElse===")
+    println(Some(x).getOrElse(0))
+    println(None.getOrElse(0))
+
+    println("===flatMap===")
+    println(Some(x).flatMap(x => Some(x+1)))
+    println(None.flatMap(x => Some(1)))
+
+    println("===orElse===")
+    println(Some(x).orElse(Some(0)))
+    println(None.orElse(Some(0)))
+
+    println("===filter===")
+    println(Some(x).filter(x => x==1))
+    println(Some(x).filter(x => x!=1))
+    println(None.filter(x => x==1))
+
+    println("===filter1===")
+    println(Some(x).filter1(x => x==1))
+    println(Some(x).filter1(x => x!=1))
+    println(None.filter1(x => x==1))
+
+    println("===variance===")
+    println(Option.variance(Seq(1,2,3,4,5))) //2.5인데 왜..2가 나오지..?ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ
+
+    println("===map2===")
+    println(Option.map2(Some(1), Some(2))(f))
+    println(Option.map2(None, Some(2))(f))
+    println(Option.map2(None, None)(f))
   }
 }
