@@ -3,12 +3,22 @@ package fpinscala.errorhandling.soeun
 //import scala.{Option => _, Either => _, Left => _, Right => _, _} // hide std library `Option` and `Either`, since we are writing our own in this chapter
 
 /*4.6*/
+//되게 기계적으로 풀었음 => 이해를 못한 것 같다는 뜻
 sealed trait Either[+E,+A] {
- def map[B](f: A => B): Either[E, B] = sys.error("todo")
+ def map[B](f: A => B): Either[E, B] = this match {
+   case Right(a) => Right(f(a))
+   case Left(e) => Left(e)
+ }
 
- def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B] = sys.error("todo")
+ def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B] = this match {
+   case Right(a) => f(a)
+   case Left(e) => Left(e)
+ }
 
- def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = sys.error("todo")
+ def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = this match {
+   case Right(a) => Right(a)
+   case Left(_) => b
+ }
 
  def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] = sys.error("todo")
 }
@@ -36,4 +46,23 @@ object Either {
 
   /*4.8*/
   //두 오류를 모두 보고하게 하려면?
+  //새로운걸 만드는 게 덜 복잡하겠지만 명확한 근거가 엄슴
+}
+
+object Test {
+  def main(args: Array[String]): Unit = {
+    println("===map===")
+    println(Right(1).map(a => a + 1))
+    println(Left(1).map(a => 1))
+    println(None.map(a => 1))
+
+    println("===flatmap===")
+    println(Right(1).flatMap(a => Right(a + 1)))
+    println(Left(1).flatMap((a => Left(0))))
+    //None 테스트
+
+    println(Right(1).orElse(Right(4)))
+//    println(Left(1).orElse())
+//    println(None.orElse())
+  }
 }
