@@ -9,22 +9,35 @@ sealed trait Option[+A] {
     case Some(a) => Some(f(a))
   }
 
+  /*(default: => B) 는 (default: B) 일 수도 있었어.
+    하지만 이렇게 되면 None일 아니고 Some(3)일 때도 default 값을 계산하는 낭비가 발생함
+    그래서 실제로 B가 사용되기 전까지는 평가되지 않는다는 의미에서 (default: {} => B)를 한 것.
+    주로 성능 향상을 시킬 때 사용해
+   */
   def getOrElse[B >: A](default: => B): B = this match {
     case None => default
     case Some(a) => a
   }
 
+  /*flatMap을 사용하면, a에 f라는 함수를 적용하는데, f는 Option[B]를 반환해.
+    그러면 Option[A] 값에 그냥 f를 적용하면 Option[Option[B]]가 나오는데, flatMap을 적용해서 Option[B]가 나오게되는거야
+    그러면 (f : a => Some(a + 1)) 라고 할 때
+    Some(1)에 f를 적용하면 원래 Some(Some(2))가 나오지만
+    flatMap을 적용하면 Some(2)가 나오는거야
+  */
   // Some(1) f: a => Some(a + 1)  Some(Some(2)) -> Some(2), None
-
-  //패턴 매칭을 이용하지 않고 하는 방법을 모르겠음
+  // 패턴 매칭을 이용하지 않고 하는 방법을 모르겠음
   def flatMap[B](f: A => Option[B]): Option[B] = this match {
     case None => None
     case Some(a) => f(a)
   }
 
+  //어제 했는데 기억 왜 못하지 바본가봐 TODO 뭐 잘못되었는지 찾아
+//  def flatMap1[B](f: A => Option[B]): Option[B] =
+//    map(f).getOrElse(a)
+
   // Some(1) => Some(Some(1)) => getOrElse() => Some(1)
   // None => None => getOrElse() => ob
-
   def orElse[B>:A](ob: => Option[B]): Option[B] =
     map(Some(_)).getOrElse(ob)
 
