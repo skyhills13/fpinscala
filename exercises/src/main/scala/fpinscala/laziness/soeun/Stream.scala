@@ -29,6 +29,7 @@ trait Stream[+A] {
   * 처음 n개의 요소를 돌려주는 함수
   * */
   def take(n: Int): Stream[A] = this match {
+    //case 앞에 if를 거는게 좋겠지. 케이스 안걸린거는 그냥 empty 주면 되니까
     case Cons(h, t) =>
       if(n == 1) cons(h(), empty)
       else if(n > 1) cons(h(), t().take(n-1))
@@ -58,6 +59,7 @@ trait Stream[+A] {
   /*5.4
   * 모든 요소가 주어진 술어를 만족하는지. 만족하지 않으면 순회 즉시 마쳐야
   * */
+  //TODO foldRight로 다시 해라
   def forAll(p: A => Boolean): Boolean = this match {
     case Cons(h, t) =>
       if(p(h())) t().forAll(p)
@@ -145,25 +147,24 @@ object Stream {
     go(0, 1)
   }
 
-//  /*5.11
-//  * 초기 상태 하나, 다음 상태 및 다음 값을 산출하는 함수 하나 받아서 일반화된 스트림을 구축하는 함수
-//  * */
-//  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = this match {
-//    case None => empty
-//    case Some((h, t)) => cons(h, unfold(t)(f))
-//  }
-//  /*5.12
-//  * unfold로 fibs, from, constant, ones
-//  * */
-//  def fibs2(): Some[[Stream[Int]] = {
-////    unfold((0, 1)){case (a, b) => Some(cons(a, (b, a + b)))}
-//    unfold((0, 1)){case (a, b) => cons(a, (b, a + b))}
-//  }
-//
-//  def from2(n: Int): Stream[Int] = {
-//    unfold(n)(n => unfold(n+1))
-//  }
-//
+  /*5.11
+  * 초기 상태 하나, 다음 상태 및 다음 값을 산출하는 함수 하나 받아서 일반화된 스트림을 구축하는 함수
+  * */
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
+    case None => empty
+    case Some((h, t)) => cons(h, unfold(t)(f))
+  }
+  /*5.12
+  * unfold로 fibs, from, constant, ones
+  * */
+  def fibs2(): Stream[Int] = {
+    unfold((0, 1)){case (a, b) => Some(a, (b, a + b))}
+  }
+
+  def from2(n: Int): Stream[Int] = {
+    unfold(n)(n => Some(n, n+1))
+  }
+
 //  def constant2[A](a : A): Stream[A] = {
 //    unfold(a)(a => Some(cons(a, a)))
 //  }
