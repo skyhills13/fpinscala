@@ -68,8 +68,6 @@ trait Stream[+A] {
   // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
   // writing your own function signatures.
 
-  def startsWith[B](s: Stream[B]): Boolean = sys.error("todo")
-
   /* Ex 5.1 */
   def toList: List[A] = this match {
     case Empty => Nil
@@ -95,6 +93,56 @@ trait Stream[+A] {
 
   def flatMap[B](f: A => Stream[B]): Stream[B] =
     foldRight(empty[B])((a,b) => f(a) append b)
+
+  /* Ex 5.13 */
+  def mapUF[B](f: A => B): Stream[B] =
+    unfold(this) {
+      case Cons(a, s) => Some((f(a()), s()))
+      case Empty => None
+    }
+
+  def takeUF(n: Int): Stream[A] =
+    unfold(this) {
+      case Cons(a, s) if n > 0 => Some((a(), s().take(n-1)))
+      case _ => None
+    }
+
+  def takeWhileUF(p: A => Boolean): Stream[A] =
+    unfold(this) {
+      case Cons(a, s) if (p(a())) => Some((a(), s().takeWhile(p)))
+      case _ => None
+    }
+
+  def zipWith[B,C](s2: Stream[B])(f: (A,B) => C): Stream[C] =
+    unfold((this, s2)) {
+      case (Empty, _) => None
+      case (_, Empty) => None
+      case (Cons(a,b), Cons(c,d)) => Some((f(a(),c()), (b(), d())))
+    }
+
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] =
+    unfold((this, s2)) {
+      case (Empty, Empty) => None
+      case (Empty, Cons(c,d)) => Some((None, Some(c())), (Empty, d()))
+      case (Cons(a,b), Empty) => Some((Some(a()), None), (b(), Empty))
+      case (Cons(a,b), Cons(c,d)) => Some((Some(a()), Some(c())), (b(), d()))
+    }
+
+  /* Ex 5.14 */
+  def startsWith[A](s: Stream[A]): Boolean =
+//    (this, s) match {
+//      case (_, Empty) => true
+//      case (Empty, _) => false
+//      case (Cons(a,b), Cons(c,d)) => if (a() == c()) b().startsWith(d()) else false
+//    }
+    zipAll(s).takeWhile(_._2 != None).forAll { case (a,b) => a == b}
+
+  /* Ex 5.15 */
+  def tails: Stream[Stream[A]] =
+    unfold(this) {
+      case Cons(a, b) => Some(Cons(a,b), b())
+      case _ => None
+    }
 }
 
 case object Empty extends Stream[Nothing]
@@ -104,6 +152,7 @@ object LazinessTest {
   def main(args: Array[String]): Unit = {
     import Stream._
     val one23 = Stream(1,2,3)
+    val one234 = Stream(1,2,3,4)
 
     println("*Ex5.1 toList : List(1, 2, 3) = " + one23.toList)
 
@@ -135,6 +184,25 @@ object LazinessTest {
     println("*Ex5.8 constant: List(3, 3) = " + constant(3).take(2).toList)
 
     println("*Ex5.10 fibs: List(0, 1, 1, 2, 3, 5, 8, 13, 21, 34) = " + fibs.take(10).toList)
+
+    println("*Ex5.12 fibsUF: List(0, 1, 1, 2, 3, 5, 8, 13, 21, 34) = " + fibsUF.take(10).toList)
+    println("*Ex5.12 fromUF: List(2, 3) = " + fromUF(2).take(2).toList)
+    println("*Ex5.12 constantUF: List(3, 3, 3) = " + constantUF(3).take(3).toList)
+    println("*Ex5.12 onesUF: List(1, 1, 1) = " + onesUF.take(3).toList)
+
+    println("*Ex5.13 mapUF: List(2, 3, 4) = " + one23.mapUF(_ + 1).toList)
+    println("*Ex5.13 takeUF: List(1, 2) = " + one23.takeUF(2).toList)
+    println("*Ex5.13 takeWhileUF : List(1, 2) = " + one23.takeWhileUF(_ < 3).toList)
+
+    println("*Ex5.13 zipWith : List(2, 3, 4) = " + one23.zipWith(ones)(_ + _).toList)
+    println("*Ex5.13 zipAll : List((Some(1),Some(1)), (Some(2),Some(2)), (Some(3),Some(3)), (None,Some(4)))  = " + one23.zipAll(one234).toList)
+
+    println("*Ex5.14 startsWith: true = " + one23.startsWith(Stream(1,2)))
+    println("*Ex5.14 startsWith: true = " + one23.startsWith(Stream(1,2,3)))
+    println("*Ex5.14 startsWith: false = " + one23.startsWith(Stream(2,3)))
+
+    println("*Ex5.15 tails: List(2, 3, 4) = " + one23.tails.map(_.toList).toList)
+
   }
 }
 
@@ -173,7 +241,45 @@ object Stream {
     loop(0, 1)
   }
 
+  /* Ex 5.11 */
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
+    case Some((a,s)) => cons(a, unfold(s)(f))
+    case None => empty[A]
+  }
 
-  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = sys.error("todo")
+  /* Ex 5.12 */
+  def fibsUF: Stream[Int] = unfold((0,1))(x => Some(x._1, (x._2, x._1 + x._2)))
+  /* Cosera 강의에 나오는 case문의 타입 기억해둘 것*/
+  /*def fibsUF: Stream[Int] = unfold[Int,(Int,Int)]((0,1)){ case (p,c) => Some(p, (c, p+c)) }*/
+
+  def fromUF(n: Int): Stream[Int] = unfold(n)(x => Some(x, x+1))
+  def constantUF(n: Int): Stream[Int] = unfold(n)(x => Some(x, x))
+  def onesUF: Stream[Int] = unfold(1)(x => Some(x, x))
+
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
