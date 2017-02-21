@@ -69,22 +69,39 @@ trait Stream[+A] {
   * foldRight로 takeWhile구현
   * */
   def takeWhile2(p: A => Boolean): Stream[A] = {
-    //TODO 왜 안되는지 찾아봐
+    foldRight(empty[A])((h, t) => if(p(h)) cons(h,t) else empty)
 //    foldRight(empty)((h, t) => if(p(h)) cons(h(),t()) else empty)
-    sys.error("TODO")
   }
   /*5.6
   * foldRight로 구현
   * */
-  def headOption: Option[A] = sys.error("todo")
+  def headOption: Option[A] = {
+    foldRight(None:Option[A])((h,t) => Some(h))
+  }
 
   // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
   // writing your own function signatures.
+  def map[B](p: A => B): Stream[B] = {
+    foldRight(empty[B])((h,t) => cons(p(h), t))
+  }
+
+  def filter(p: A => Boolean): Stream[A] = {
+    foldRight(empty[A])((h,t) => if(p(h)) cons(h, t) else t)
+  }
+
+//  def append(a: A): Stream[A] = {
+//        foldRight(a)((h,t) => cons(h, t))
+//  }
+
+//  def flatMap[B](p: A => Stream[B]): Stream[B] = {
+//    foldRight(empty[B])((h,t)=> cons(p(h), t)) //이 상태는 지금 Stream[Stream[B]]
+//  }
 
   /*5.14
   *
   * */
   def startsWith[B](s: Stream[B]): Boolean = sys.error("todo")
+  //s의 길이 확인해서, 길이만큼 확인
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
@@ -128,13 +145,31 @@ object Stream {
     go(0, 1)
   }
 
-  /*5.11
-  * 초기 상태 하나 다음 상태 및 다음 값을 산출하는 함수 하나 받아서 일반화된 스트림을 구축하는 함수
-  * */
-  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = sys.error("todo")
-  /*5.12
-  * unfold로 fibs, from, constant, ones
-  * */
+//  /*5.11
+//  * 초기 상태 하나, 다음 상태 및 다음 값을 산출하는 함수 하나 받아서 일반화된 스트림을 구축하는 함수
+//  * */
+//  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = this match {
+//    case None => empty
+//    case Some((h, t)) => cons(h, unfold(t)(f))
+//  }
+//  /*5.12
+//  * unfold로 fibs, from, constant, ones
+//  * */
+//  def fibs2(): Some[[Stream[Int]] = {
+////    unfold((0, 1)){case (a, b) => Some(cons(a, (b, a + b)))}
+//    unfold((0, 1)){case (a, b) => cons(a, (b, a + b))}
+//  }
+//
+//  def from2(n: Int): Stream[Int] = {
+//    unfold(n)(n => unfold(n+1))
+//  }
+//
+//  def constant2[A](a : A): Stream[A] = {
+//    unfold(a)(a => Some(cons(a, a)))
+//  }
+//  def ones2(): Stream[Int] = {
+//    unfold(1)(1 => Some(cons(1,1)))
+//  }
   /*5.13
   * unfold로 map, take, takeWhile, zipWith, zipAll
   * */
@@ -147,6 +182,7 @@ object Test {
   def main(args: Array[String]): Unit = {
     /*3.1*/
     val x = Stream(1,2,3,4,5);
+    val y = Stream();
     println("5.2 // take() - " + x.take(0).toList);
     println("5.2 // take() - " + x.take(1).toList);
     println("5.2 // drop() - " + x.drop(0).toList);
@@ -158,10 +194,24 @@ object Test {
     println("5.4 // forAll() false - " + x.forAll(_ % 2 == 0));
     println("5.4 // forAll() true - " + x.forAll(_ + 1 > 0));
     println("============================")
+    println("5.5 // takeWhile2() false - " + x.takeWhile2(_ % 2 == 0).toList);
+    println("5.5 // takeWhile2() true - " + x.takeWhile2(_ + 1 > 0).toList);
+    println("============================")
+    //TODO 이거 왜 Some(1)이 아니지
+    println("5.6 // headOption() - " + x.headOption.toList);
+    println("5.6 // headOption() none - " + y.headOption.toList);
+    println("============================")
+    println("5.7 // map() - " + x.map(_ * 2).toList);
+    println("5.7 // filter()  - " + x.filter(_ % 2 == 0).toList);
+//    println("5.7 // append()  - " + x.append(10).toList);
+//    println("5.7 // flatMap()  - " + x.flatMap(_ % 2 == 0).toList);
+    println("============================")
     println("5.8 // constant() - expected : 10 10 " + Stream.constant(10).take(2).toList);
     println("============================")
     println("5.9 // from() - expected : 10 11 12 13 " + Stream.from(10).take(4).toList);
     println("============================")
     println("5.10 // fibs() - expected : 0 1 1 2 3 5 8 " + Stream.fibs().take(7).toList);
+    println("============================")
+//    println("5.11 // unfold() - expected : 0 1 1 2 3 5 8 " + Stream.fibs().take(7).toList);
   }
 }
