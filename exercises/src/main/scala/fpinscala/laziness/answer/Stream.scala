@@ -3,7 +3,6 @@ package fpinscala.laziness.answer
 import Stream._
 trait Stream[+A] {
 
-  // The natural recursive solution
   def toListRecursive: List[A] = this match {
     case Cons(h,t) => h() :: t().toListRecursive
     case _ => List()
@@ -15,6 +14,7 @@ trait Stream[+A] {
   step we cons onto the front of the `acc` list, which will result in the
   reverse of the stream. Then at the end we reverse the result to get the
   correct order again.
+  [:ben] are the line breaks above okay? I'm unclear on whether these "hints" are supposed to go in the book or not
   */
   def toList: List[A] = {
     @annotation.tailrec
@@ -43,36 +43,6 @@ trait Stream[+A] {
     go(this)
   }
 
-  /*
-    Create a new Stream[A] from taking the n first elements from this. We can achieve that by recursively
-    calling take on the invoked tail of a cons cell. We make sure that the tail is not invoked unless
-    we need to, by handling the special case where n == 1 separately. If n == 0, we can avoid looking
-    at the stream at all.
-  */
-  def take(n: Int): Stream[A] = this match {
-    case Cons(h, t) if n > 1 => cons(h(), t().take(n - 1))
-    case Cons(h, _) if n == 1 => cons(h(), empty)
-    case _ => empty
-  }
-
-  /*
-    Create a new Stream[A] from this, but ignore the n first elements. This can be achieved by recursively calling
-    drop on the invoked tail of a cons cell. Note that the implementation is also tail recursive.
-  */
-  @annotation.tailrec
-  final def drop(n: Int): Stream[A] = this match {
-    case Cons(_, t) if n > 0 => t().drop(n - 1)
-    case _ => this
-  }
-
-  /*
-  It's a common Scala style to write method calls without `.` notation, as in `t() takeWhile f`.
-  */
-  def takeWhile(f: A => Boolean): Stream[A] = this match {
-    case Cons(h,t) if f(h()) => cons(h(), t() takeWhile f)
-    case _ => empty
-  }
-
   def foldRight[B](z: => B)(f: (A, => B) => B): B = // The arrow `=>` in front of the argument type `B` means that the function `f` takes its second argument by name and may choose not to evaluate it.
     this match {
       case Cons(h,t) => f(h(), t().foldRight(z)(f)) // If `f` doesn't evaluate its second argument, the recursion never occurs.
@@ -81,6 +51,43 @@ trait Stream[+A] {
 
   def exists(p: A => Boolean): Boolean =
     foldRight(false)((a, b) => p(a) || b) // Here `b` is the unevaluated recursive step that folds the tail of the stream. If `p(a)` returns `true`, `b` will never be evaluated and the computation terminates early.
+
+  @annotation.tailrec
+  final def find(f: A => Boolean): Option[A] = this match {
+    case Empty => None
+    case Cons(h, t) => if (f(h())) Some(h()) else t().find(f)
+  }
+  /*
+  `take` first checks if n==0. In that case we need not look at the stream at all.
+  */
+  def take(n: Int): Stream[A] = this match {
+    //여기서 중요한 것은 h와 t가 함수라는 것. 값이 아니라.
+    //h의 타입은 무엇일까? -> A라는 값을 리턴하는 함수.
+    //take(100)을 해도 실제로 toList등으로 사용되기 전에는 h()도 t()도 평가되지 않아
+    //=> 새로운 스트림을 만들기는 만든다. 하지만 계산된 값을 가지고 있는게 아니라, 함수로 가지고 있는거야
+    //cons()는 callbyname. 평가 안하고 넘어가는거야. Cons는 생성자야.
+    case Cons(h, t) if n > 1 => cons(h(), t().take(n - 1))
+    case Cons(h, _) if n == 1 => cons(h(), empty)
+    case _ => empty
+  }
+
+
+  /*
+  Unlike `take`, `drop` is not incremental. That is, it doesn't generate the
+  answer lazily. It must traverse the first `n` elements of the stream eagerly.
+  */
+  @annotation.tailrec
+  final def drop(n: Int): Stream[A] = this match {
+    case Cons(_, t) if n > 0 => t().drop(n - 1)
+    case _ => this
+  }
+  /*
+  It's a common Scala style to write method calls without `.` notation, as in `t() takeWhile f`.
+  */
+  def takeWhile(f: A => Boolean): Stream[A] = this match {
+    case Cons(h,t) if f(h()) => cons(h(), t() takeWhile f)
+    case _ => empty
+  }
 
   /*
   Since `&&` is non-strict in its second argument, this terminates the traversal as soon as a nonmatching element is found.
@@ -96,6 +103,8 @@ trait Stream[+A] {
   def headOption: Option[A] =
     foldRight(None: Option[A])((h,_) => Some(h))
 
+  // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
+  // writing your own function signatures.
   def map[B](f: A => B): Stream[B] =
     foldRight(empty[B])((h,t) => cons(f(h), t))
 
@@ -104,12 +113,24 @@ trait Stream[+A] {
       if (f(h)) cons(h, t)
       else t)
 
+  //covariant, contravariant를 봐야해.
+  //참고로 자바의 generic은 covariant가 아냐 => 예외) Array
+  //파라미터는 negative position이야 => 함수의 파라미터를 바로 쓸 수 없어.
+  //리턴타입은 positive position이야.
+  //pis 19장 type parameter 부분을 읽어
+  //java의 lower bound, upper bound랑 비슷해(Collections의 copy)
+
+  //B가 A의 super type
+  //파라미터로 쓸 때의 패턴이야. 걍 외우세요
+  //a2가 A의 superType이면 되는거야
   def append[B>:A](s: => Stream[B]): Stream[B] =
     foldRight(s)((h,t) => cons(h,t))
 
   def flatMap[B](f: A => Stream[B]): Stream[B] =
     foldRight(empty[B])((h,t) => f(h) append t)
 
+  //unfold
+  //끝까지 안가고 중간에 끝나는 스트림을 만들 수 있는거야
   def mapViaUnfold[B](f: A => B): Stream[B] =
     unfold(this) {
       case Cons(h,t) => Some((f(h()), t()))
@@ -156,6 +177,7 @@ trait Stream[+A] {
   `s startsWith s2` when corresponding elements of `s` and `s2` are all equal, until the point that `s2` is exhausted. If `s` is exhausted first, or we find an element that doesn't match, we terminate early. Using non-strictness, we can compose these three separate logical steps--the zipping, the termination when the second stream is exhausted, and the termination if a nonmatching element is found or the first stream is exhausted.
   */
   def startsWith[A](s: Stream[A]): Boolean =
+  //!_._2의 뜻은 튜플에서 두번째 것(this말고 파라미터로 받은 s)이 None이 아닌지 확인
     zipAll(s).takeWhile(!_._2.isEmpty) forAll {
       case (h,h2) => h == h2
     }
@@ -169,12 +191,8 @@ trait Stream[+A] {
       case s => Some((s, s drop 1))
     } append Stream(empty)
 
-  def hasSubsequence[A](s: Stream[A]): Boolean =
-    tails exists (_ startsWith s)
-
   /*
   The function can't be implemented using `unfold`, since `unfold` generates elements of the `Stream` from left to right. It can be implemented using `foldRight` though.
-
   The implementation is just a `foldRight` that keeps the accumulated value and the stream of intermediate results, which we `cons` onto during each iteration. When writing folds, it's common to have more state in the fold than is needed to compute the result. Here, we simply extract the accumulated list once finished.
   */
   def scanRight[B](z: B)(f: (A, => B) => B): Stream[B] =
@@ -184,12 +202,6 @@ trait Stream[+A] {
       val b2 = f(a, p1._1)
       (b2, cons(b2, p1._2))
     })._2
-
-  @annotation.tailrec
-  final def find(f: A => Boolean): Option[A] = this match {
-    case Empty => None
-    case Cons(h, t) => if (f(h())) Some(h()) else t().find(f)
-  }
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
@@ -198,6 +210,8 @@ object Stream {
   def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
     lazy val head = hd
     lazy val tail = tl
+    //여기서 hd는 이 함수안에서 한번도 평가되지 않고 넘어가. 왜냐면 val head가 끝까지 쓰이지 않았으니까.
+    //hd 함수를 계산하지 않고 그대로 넘겨
     Cons(() => head, () => tail)
   }
 
@@ -209,10 +223,9 @@ object Stream {
 
   val ones: Stream[Int] = Stream.cons(1, ones)
 
-  // This is more efficient than `cons(a, constant(a))` since it's just
-  // one object referencing itself.
   def constant[A](a: A): Stream[A] = {
     lazy val tail: Stream[A] = Cons(() => a, () => tail)
+    //이것은 재귀가 아니다!!! 그냥 value를 계속 가져오는거다!!
     tail
   }
 
@@ -224,21 +237,6 @@ object Stream {
       cons(f0, go(f1, f0+f1))
     go(0, 1)
   }
-
-  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
-    f(z) match {
-      case Some((h,s)) => cons(h, unfold(s)(f))
-      case None => empty
-    }
-
-  /*
-  The below two implementations use `fold` and `map` functions in the Option class to implement unfold, thereby doing away with the need to manually pattern match as in the above solution.
-   */
-  def unfoldViaFold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
-    f(z).fold(empty[A])((p: (A,S)) => cons(p._1,unfold(p._2)(f)))
-
-  def unfoldViaMap[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
-    f(z).map((p: (A,S)) => cons(p._1,unfold(p._2)(f))).getOrElse(empty[A])
 
   /*
   Scala provides shorter syntax when the first action of a function literal is to match on an expression.  The function passed to `unfold` in `fibsViaUnfold` is equivalent to `p => p match { case (f0,f1) => ... }`, but we avoid having to choose a name for `p`, only to pattern match on it.
@@ -254,4 +252,12 @@ object Stream {
 
   // could also of course be implemented as constant(1)
   val onesViaUnfold = unfold(1)(_ => Some((1,1)))
+
+  //z가 시작값이고 그 값을 f에 넣어서 나온 Option[(A,S)]중에 A가 Cons의 헤더 값이고 S는 다음 판단을 위한 것
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
+    f(z) match {
+      case Some((h,s)) => cons(h, unfold(s)(f))
+      case None => empty
+    }
+
 }
