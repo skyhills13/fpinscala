@@ -92,7 +92,7 @@ trait Stream[+A] {
   //    unfold(empty[B])((x) => Some( (f(x), x) )) //실패
   //    unfold(this)((x) => Some((f(x.headOption().get), x.drop(1)))) //실패
     unfold(this)(x => x match {
-      case Cons(h, t) => Some(f(h()), t())
+      case Cons(h, t) => Some((f(h()), t()))
       case _ => None
     }
     )
@@ -114,6 +114,7 @@ trait Stream[+A] {
       case Cons(h,t) if f(h()) => Some((h(), t()))
       case _ => None
     }
+
   }
 
 /*
