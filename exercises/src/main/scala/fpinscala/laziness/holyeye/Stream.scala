@@ -130,7 +130,23 @@ trait Stream[+A] {
       case _ => None
     }
 
-  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] = ???
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] = {
+    unfold(this, s2) {
+      case (Cons(h1, t1), Cons(h2, t2)) => Some((Some(h1()), Some(h2())), (t1(), t2()))
+      case (Empty, Cons(h2, t2)) => Some((None, Some(h2())), (empty(), t2()))
+      case (Cons(h1, t1), Empty) => Some((Some(h1()), None), (t1(), empty()))
+      case _ => None
+    }
+  }
+
+
+  //List((Some(1),Some(1)), (Some(2),Some(2)), (Some(3),None))
+//  def startsWith[A](s: Stream[A]): Boolean = {
+//    this.zipAll(s).takeWhile {
+//      case (a, b) => a.get == b.get
+//    }
+//  }
+
 }
 
 case object Empty extends Stream[Nothing]
@@ -253,6 +269,14 @@ object StreamTest {
     println("ex5.13: take: " + Stream(1, 2).takeViaUnfold(3).toList)
     println("ex5.13: takeWhile: " + Stream(1, 2, 3, 4, 5).takeWhileVidUnfold(_ < 3).toList)
     println("ex5.13: zipWith: " + Stream(1,2,3).zipWith(Stream(4,5,6))((x,y) => x + y).toList)
+    println("ex5.14: zipAll: " + Stream(1,2).zipAll(Stream(1,2,3)).toList)
+    println("ex5.14: zipAll: " + Stream(1,2,3).zipAll(Stream(1,2)).toList)
+//    println("ex5.15: startWith: " + Stream(1,2,3).startsWith(Stream(1,2)))
+    println(Some(1,2) == Some((1,2)))
+    println(Some((1,2)))
+    println(Some(1,2))
+
+//    println("ex5.14: startWith:" + Stream(1,2,3).startWith(Stream(1,2)))
   }
 }
 
