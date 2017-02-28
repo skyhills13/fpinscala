@@ -2,6 +2,8 @@ package fpinscala.state.holyeye
 
 import fpinscala.state.holyeye.RNG._
 
+import scala.annotation.tailrec
+
 /**
   * Created by younghankim on 2017. 2. 25..
   */
@@ -124,8 +126,10 @@ object RNG {
     * unit(List(1,2,3))
     */
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = {
-    //    fs.foldRight(unit(Nil:List[A]))((a, b) => map2(a,b)((a,b) => b)) //못품
-    fs.foldRight(unit(List[A]()))((a, b) => map2(a, b)((a, b) => a :: b)) //정답확인
+
+      fs.foldRight(unit(Nil:List[A]))((a, b) => map2(a,b)((a,b) => a:: b)) //못품
+      fs.foldRight[Rand[List[A]]](unit(Nil))((a, b) => map2(a,b)((a,b) => a:: b)) //못품
+      fs.foldRight(unit(Nil):Rand[List[A]])((a,l) => map2(a, l)(_ :: _))
   }
 
   //정답 확인
