@@ -86,6 +86,46 @@ object Par {
   def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]] =
     sequence(as.foldRight(Nil: List[Par[A]])((a, b) => if (f(a)) lazyUnit(a) :: b else b))
 
+  /* Ex 7.11 */
+  def choiceN[A](n: Par[Int])(choices: List[Par[A]]): Par[A] =
+    es => {
+      val idx = n(es).get()
+      choices(idx)(es)
+    }
+
+  // Par[Boolean] => Par[Int]로 만드는 방법이 필요. 이러면 es는 노출하지 않아도 됨. 그래봐야 더 복잡.
+  def choice_choiceN[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] =
+    choiceN(map(cond)(a => if (a) 0 else 1))(List(t, f))
+
+  /* Ex 7.12 */
+  def choiceMap[K,V](key: Par[K])(choices: Map[K,Par[V]]): Par[V] =
+//    map(key)(a => choices(a))     // flatMap이 아니라서 X. 직접 구현해야.
+  es => {
+    val k = key(es).get()
+    choices(k)(es)
+  }
+
+  /* Ex 7.13 */
+  // 결국 flatMap이로구나
+  def chooser[A,B](pa: Par[A])(choices: A => Par[B]): Par[B] =
+    es => {
+      val a = pa(es).get()
+      choices(a)(es)
+    }
+
+  def choice_chooser[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] =
+    chooser(cond)(b => if (b) t else f)
+
+  def choiceN_chooser[A](n: Par[Int])(choices: List[Par[A]]): Par[A] =
+    chooser(n)(i => choices(i))
+
+  /* Ex 7.14 */
+  def flatMap[A,B](a: Par[A])(f: A => Par[B]): Par[B] = chooser(a)(f)
+
+  def join[A](a: Par[Par[A]]): Par[A] =
+    flatMap(a)(p => p)
+
+  def flatMap_join[A,B](a: Par[A])(f: A => Par[B]): Par[B] = join(map(a)(f))
 }
 
 object Examples {
