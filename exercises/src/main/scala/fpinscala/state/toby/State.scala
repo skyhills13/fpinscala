@@ -75,13 +75,13 @@ object RNG {
     }
   }
 
-  def nonNegativeEven: Rand[Int] =
-    map(nonNegativeInt)(i => i -i % 2)
-
-  /* Ex 6.5 */
-  def double2(rng: RNG): Rand[Double] = map(nonNegativeInt)(i => i / (Int.MaxValue.toDouble+1))
-  /* 6.2와 동일하게 만들려면 rng 적용까지 해야지 */
-  def double2_(rng: RNG): (Double, RNG) = map(nonNegativeInt)(i => i / (Int.MaxValue.toDouble+1))(rng)
+//  val nonNegativeEven: Rand[Int] =
+//    map(nonNegativeInt)(i => i - i % 2)
+//
+//  /* Ex 6.5 */
+//  def double2(rng: RNG): Rand[Double] = map(nonNegativeInt)(i => i / (Int.MaxValue.toDouble+1))
+//  /* 6.2와 동일하게 만들려면 rng 적용까지 해야지 */
+//  def double2_(rng: RNG): (Double, RNG) = map(nonNegativeInt)(i => i / (Int.MaxValue.toDouble+1))(rng)
 
   /* Ex 6.6 */
   def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = rng => {
@@ -104,9 +104,9 @@ object RNG {
   }
 
   /* Ex 6.9 */
-  def map[A,B](s: Rand[A])(f: A => B): Rand[B] = flatMap(s)(a => unit(f(a)))
+//  def map[A,B](s: Rand[A])(f: A => B): Rand[B] = flatMap(s)(a => unit(f(a)))
 
-  def map2FM[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = flatMap(ra)(a => map(rb)(b => f(a,b)))
+//  def map2FM[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = flatMap(ra)(a => map(rb)(b => f(a,b)))
 }
 
 object StateTest {
