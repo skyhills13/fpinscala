@@ -106,13 +106,62 @@ object Par {
   }
 
   def choiceViaChoiceN[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] = {
-//    val p: Par[Int] = cond => if(cond) 1 else 0
-    choiceN(map(cond)(cond => if(cond) 1 else 0))(List(t, f))
+    //    val p: Par[Int] = cond => if(cond) 1 else 0
+    val p: Boolean => Int = a => if(a) 0 else 1
+    choiceN(map(cond)(p))(List(t, f))
   }
 
   /*7.12*/
+  def choiceMap[K,V](p: Par[K])(ps: Map[K,Par[V]]): Par[V] = {
+//    es => Future[A]
+    es => {
+      val a = run(es)(p) //Future 반환
+      val b = a.get() // Context를 벗긴 값 반환
+      run(es)(ps(b))
+    }
+  }
+
   /*7.13*/
+  // see `Nonblocking.scala` answers file. This function is usually called something else!
+  def chooser[A,B](p: Par[A])(f: A => Par[B]): Par[B] = {
+    es => {
+      val k = run(es)(p).get
+      run(es)(f(k))
+    }
+  }
+
+  //chooser가 결국 flatMap 인거라
+  def flatMap[A,B](p: Par[A])(f: A => Par[B]): Par[B] = {
+    es => {
+      val k = run(es)(p).get
+      run(es)(f(k))
+    }
+  }
+
+  def choiceViaChooser[A](p: Par[Boolean])(f: Par[A], t: Par[A]): Par[A] = {
+    flatMap(p)(a => if (a) t else f)
+  }
+
+  def choiceNChooser[A](p: Par[Int])(choices: List[Par[A]]): Par[A] = {
+    flatMap(p)(index => choices(index))
+  }
+
   /*7.14*/
+  def join[A](p: Par[Par[A]]): Par[A] = {
+    es => {
+      val a = run(es)(p).get()
+      run(es)(a)
+    }
+  }
+
+  def joinViaFlatMap[A](a: Par[Par[A]]): Par[A] = {
+    flatMap(a)(b => b)
+  }
+
+//  def flatMapViaJoin[A,B](p: Par[A])(f: A => Par[B]): Par[B] = {
+//    //TODO 이것은 더 생각해봐야겠구만
+//  }
+
 
   /* Gives us infix syntax for `Par`. */
   implicit def toParOps[A](p: Par[A]): ParOps[A] = new ParOps(p)
