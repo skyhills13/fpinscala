@@ -115,6 +115,8 @@ object RNG {
   val randIntDouble: Rand[(Int, Double)] = both(int, double)
   val randDoubleInt: Rand[(Double, Int)] = both(double, int)
 
+  //TODO 다시 풀기
+//  foldRight안에 들어가는게 함수의 리턴값이어야해 즉. Rand[List[A]]여야 한다구
   /*7*/
 //  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = {
 ////    def go(fs: List[Rand[A]]): Rand[List[A]] = {
