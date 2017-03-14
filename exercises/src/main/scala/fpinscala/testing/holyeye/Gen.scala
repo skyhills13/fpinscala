@@ -1,7 +1,7 @@
 package fpinscala.testing.holyeye
 
-import fpinscala.laziness.holyeye.Stream
-import fpinscala.state.holyeye._
+import fpinscala.laziness.answer.Stream
+import fpinscala.state.answer._
 import fpinscala.parallelism.holyeye._
 import fpinscala.parallelism.holyeye.Par.Par
 import Gen._
@@ -138,11 +138,19 @@ case class Gen[+A](sample: State[RNG, A]) {
 
   //Ex 8.6
   def flatMap[B](f: A => Gen[B]): Gen[B] = {
+    // f: A => Gen[B]
+    // f2: A => State[RNG,B]
+//    val f2: A => State[RNG, B] = a => f(a).sample
+//    val sampleB: State[RNG, B] = sample.flatMap(f2)
+//    Gen(sampleB)
     Gen(sample.flatMap(a => f(a).sample))
   }
 
-  def map[B](f: A => B): Gen[B] =
+  def map[B](f: A => B): Gen[B] = {
+    // val stateB: State[RNG, B] = sample.map(f);
+    // Gen(stateB)
     Gen(sample.map(f))
+  }
 
   //참고
   def map2[B,C](g: Gen[B])(f: (A,B) => C): Gen[C] =
@@ -168,6 +176,7 @@ case class SGen[+A](forSize: Int => Gen[A]) {
   def apply(n: Int): Gen[A] = forSize(n)
 
 }
+
 
 object Gen {
   //Ex 8.4
@@ -195,7 +204,10 @@ object Gen {
 
   //Ex 8.7
   def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] = {
-    boolean.flatMap(if (_) g1 else g2)
+    val f: Boolean => Gen[A] = b => if (b) g1 else g2
+    boolean.flatMap(f)
+
+    // Gen[Boolean] => Boolean => Gen[A]
   }
 
   //Ex8.12
