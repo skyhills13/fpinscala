@@ -75,7 +75,7 @@ object Par {
   def sequence[A](ps: List[Par[A]]): Par[List[A]] =
     ps.foldRight(unit(Nil): Par[List[A]])((a, b) => map2(a, b)(_ :: _))
 
-  // 참고: Option --- a.foldRight(Some(List()):Option[List[A]])(map2(_,_)(_ :: _))
+  // 참고: Option: a.foldRight(Some(List()):Option[List[A]])(map2(_,_)(_ :: _))
 
   def parMap[A, B](ps: List[A])(f: A => B): Par[List[B]] = fork {
     val fbs: List[Par[B]] = ps.map(asyncF(f))

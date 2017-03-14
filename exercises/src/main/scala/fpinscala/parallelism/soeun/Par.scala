@@ -106,7 +106,6 @@ object Par {
   }
 
   def choiceViaChoiceN[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] = {
-//    val p: Par[Int] = cond => if(cond) 1 else 0
     choiceN(map(cond)(cond => if(cond) 1 else 0))(List(t, f))
   }
 
