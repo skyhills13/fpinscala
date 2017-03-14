@@ -106,13 +106,13 @@ object Par {
   }
 
   def choiceViaChoiceN[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] = {
-<<<<<<< HEAD
+//<<<<<<< HEAD
     choiceN(map(cond)(cond => if(cond) 1 else 0))(List(t, f))
-=======
-    //    val p: Par[Int] = cond => if(cond) 1 else 0
-    val p: Boolean => Int = a => if(a) 0 else 1
-    choiceN(map(cond)(p))(List(t, f))
->>>>>>> 251c1cffe6e5e2c46e5a3f9039888404575a13f8
+//=======
+//    //    val p: Par[Int] = cond => if(cond) 1 else 0
+//    val p: Boolean => Int = a => if(a) 0 else 1
+//    choiceN(map(cond)(p))(List(t, f))
+//>>>>>>> 251c1cffe6e5e2c46e5a3f9039888404575a13f8
   }
 
   /*7.12*/
