@@ -26,6 +26,7 @@ object Implicits {
     implicit val defaultName = Name("Default")  // 3. implicit parameter
     printName2
 
-
+    val impName = implicitly[Name]  // 타입을 전달해서 명시적으로 implicit하게 정의된 값을 찾음
+    printName2(impName)
   }
 }
