@@ -4,12 +4,12 @@
 //import fpinscala.parallelism.Nonblocking.Par.toParOps // infix syntax for `Par.map`, `Par.flatMap`, etc
 //import language.higherKinds
 //
-//trait Monoid[A] {
-//  def op(a1: A, a2: A): A
-//  def zero: A
-//}
+trait Monoid[A] {
+  def op(a1: A, a2: A): A
+  def zero: A
+}
 //
-//object Monoid {
+object Monoid {
 //
 //  val stringMonoid = new Monoid[String] {
 //    def op(a1: String, a2: String) = a1 + a2
