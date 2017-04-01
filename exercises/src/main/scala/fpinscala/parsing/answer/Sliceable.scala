@@ -1,6 +1,7 @@
-package fpinscala.parsing.answer.instances
+package fpinscala.parsing.answer
 
-import SliceableTypes._
+import fpinscala.parsing.answer.SliceableTypes._
+
 import scala.util.matching.Regex
 
 /*

@@ -1,6 +1,7 @@
-package fpinscala.parsing.answer.instances
+package fpinscala.parsing.answer
 
-import ReferenceTypes._
+import fpinscala.parsing.answer.ReferenceTypes._
+
 import scala.util.matching.Regex
 
 object ReferenceTypes {
