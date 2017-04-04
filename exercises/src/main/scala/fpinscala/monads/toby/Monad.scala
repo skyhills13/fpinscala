@@ -61,12 +61,13 @@ trait Monad[M[_]] extends Functor[M] {
     x(Unit)
   }
 
+  /* Ex 11.12 */
+  def join[A](mma: M[M[A]]): M[A] = flatMap(mma)(a => a)
 
-
-  def join[A](mma: M[M[A]]): M[A] = ???
-
+  /* Ex 11.13 */
   // Implement in terms of `join`:
-  def __flatMap[A,B](ma: M[A])(f: A => M[B]): M[B] = ???
+  def __flatMap[A,B](ma: M[A])(f: A => M[B]): M[B] = join(map(ma)(f))
+  def __compose[A,B,C](f: A => M[B], g: B => M[C]): A => M[C] = a => join(map(f(a))(g))
 }
 
 case class Reader[R, A](run: R => A)
@@ -107,15 +108,25 @@ object Monad {
   /* Ex 11.2 */
   def stateMonad[S] = ???
 
-  val idMonad: Monad[Id] = ???
+  /* Ex 11.17 */
+  val idMonad: Monad[Id] = new Monad[Id] {
+    def unit[A](a: => A): Id[A] = Id(a)
+    def flatMap[A, B](ma: Id[A])(f: (A) => Id[B]): Id[B] = ma.flatMap(f)
+  }
 
   def readerMonad[R] = ???
+
 }
 
+/* Ex 11.17 */
 case class Id[A](value: A) {
-  def map[B](f: A => B): Id[B] = ???
-  def flatMap[B](f: A => Id[B]): Id[B] = ???
+  def map[B](f: A => B): Id[B] = Id(f(value))
+  def flatMap[B](f: A => Id[B]): Id[B] = f(value)
 }
+
+
+
+
 
 object Reader {
   def readerMonad[R] = new Monad[({type f[x] = Reader[R,x]})#f] {
