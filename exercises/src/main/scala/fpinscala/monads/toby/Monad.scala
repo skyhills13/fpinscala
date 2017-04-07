@@ -57,7 +57,7 @@ trait Monad[M[_]] extends Functor[M] {
   /* Ex 11.8 */
   // Implement in terms of `compose`:
   def _flatMap[A,B](ma: M[A])(f: A => M[B]): M[B] = {
-    val x: (Unit) => M[B] = compose(Unit => ma, f)
+    val x: (Unit) => M[B] = compose(_ => ma, f)
     x(Unit)
   }
 
